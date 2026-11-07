@@ -1,4 +1,5 @@
 mod rules;
+mod helper;
 
 #[derive(Clone)]
 struct Map{
@@ -11,14 +12,14 @@ enum State{
     Dead,
     Alive,
 }
-fn simulate(mut generation: usize, limit: usize){
+fn simulate(mut generation: usize, limit: usize, _old_map: &Map){
     while generation < limit {
         
         generation += 1;
     }
 }
 fn main() {
-    //println!("Hello, world!");
+    //Testing
     let width = 10;
     let height = 10;
     let test_map_old = Map{
@@ -26,7 +27,7 @@ fn main() {
         height,
         cells: vec![State::Dead; width * height],
     };
-    let test_map_new = test_map_old.clone();
+    let _test_map_new = test_map_old.clone();
 
-    simulate(0, 100);
+    simulate(0, 100, &test_map_old);
 }
