@@ -1,5 +1,4 @@
 mod rules;
-use crate::rules;
 
 #[derive(Clone)]
 struct Map{
@@ -7,12 +6,13 @@ struct Map{
     height: usize,
     cells: Vec<State>,
 }
+#[derive(Clone,PartialEq)]
 enum State{
     Dead,
     Alive,
 }
-fn simulate(generation: usize, limit: usize){
-    while(generation < limit){
+fn simulate(mut generation: usize, limit: usize){
+    while generation < limit {
         
         generation += 1;
     }
@@ -26,7 +26,7 @@ fn main() {
         height,
         cells: vec![State::Dead; width * height],
     };
-    test_map_new = test_map_old.clone();
+    let test_map_new = test_map_old.clone();
 
     simulate(0, 100);
 }

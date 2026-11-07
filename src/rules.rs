@@ -8,7 +8,7 @@ use crate::{Map, State::{self, Alive, Dead}};
 4. Any dead cell with exactly three live neighbours becomes a live cell, as if by reproduction
 */
 pub fn cell_state_change(index: usize, new_map: &mut Map, die_or_born: State){
-    if(die_or_born == Dead){
+    if die_or_born == Dead {
         new_map.cells[index] = Dead;
     }
     else{
