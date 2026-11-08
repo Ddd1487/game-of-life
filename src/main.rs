@@ -1,11 +1,13 @@
 mod rules;
 mod helper;
+mod neighbours;
 
 #[derive(Clone)]
 struct Map{
     width: usize,
     height: usize,
     cells: Vec<State>,
+    size: usize,
 }
 #[derive(Clone,PartialEq)]
 enum State{
@@ -26,6 +28,7 @@ fn main() {
         width,
         height,
         cells: vec![State::Dead; width * height],
+        size: width * height,
     };
     let _test_map_new = test_map_old.clone();
 

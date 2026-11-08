@@ -1,4 +1,4 @@
-use crate::{Map, State::{self, Alive, Dead}, helper::calculate_index};
+use crate::{Map, State::{self, Alive, Dead}, helper::calculate_index, neighbours::{case_bot_left, case_bot_line, case_bot_right, case_left_line, case_right_line, case_top_line}};
 
 //Rules of the game
 /*
@@ -19,22 +19,43 @@ fn cell_state_change(index: usize, new_map: &mut Map, toggle: State){
 fn check_neighbours(index_of_cell: usize, map: &Map) -> u8 {
     let mut nr_of_neighbours: u8 = 0;
 
-    for dy in -1..=1{
-        for dx in -1..=1{
-            if !(dx == 0 && dy == 0) {
-                let index_neighbour_isize: isize = (index_of_cell as isize) + dy * (map.width as isize) + dx;
-                let index_neighbour: usize = index_neighbour_isize as usize;
-                if map.cells[index_neighbour] == Alive {
-                    nr_of_neighbours += 1;
-                }
-            }
+    if index_of_cell < map.width{
+        if index_of_cell % map.width == 0{
+            nr_of_neighbours += case_top_left(index_of_cell,map);
         }
+        else if index_of_cell % map.width == map.width - 1{
+            nr_of_neighbours += case_top_right(index_of_cell,map);
+        }
+        else{
+            nr_of_neighbours += case_top_line(index_of_cell,map);
+        }
+    }
+    else if index_of_cell >= map.size - map.width{
+        if index_of_cell % map.width == 0{
+            nr_of_neighbours += case_bot_left(index_of_cell, map);
+        }
+        else if index_of_cell & map.width == map.width - 1{
+            nr_of_neighbours += case_bot_right(index_of_cell, map);
+        }
+        else{
+            nr_of_neighbours += case_bot_line(index_of_cell, map);
+        }
+    }
+    else if index_of_cell % map.width == 0{
+        nr_of_neighbours += case_left_line(index_of_cell, map);
+    }
+    else if index_of_cell % map.width == map.width - 1{
+        nr_of_neighbours += case_right_line(index_of_cell, map);
+    }
+    else{
+        nr_of_neighbours += case_mid(index_of_cell, map);
     }
 
     nr_of_neighbours
 }
+//TODO - finish this
 pub fn run_generation(old_map: &Map){
     for cell_nr in 0..old_map.cells.len() {
-        check_neighbours(cell_nr, old_map);
+        let nr_of_neighbours: u8 = check_neighbours(cell_nr, old_map);
     }
 }
