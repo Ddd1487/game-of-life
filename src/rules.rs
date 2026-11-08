@@ -1,4 +1,4 @@
-use crate::{Map, State::{self, Alive, Dead}, helper::calculate_index, neighbours::{case_bot_left, case_bot_line, case_bot_right, case_left_line, case_right_line, case_top_line}};
+use crate::{Map, State::{self, Alive, Dead}};
 
 //Rules of the game
 /*
@@ -15,40 +15,39 @@ fn cell_state_change(index: usize, new_map: &mut Map, toggle: State){
         new_map.cells[index] = Alive;
     }
 }
-// TODO - finish this
-fn check_neighbours(index_of_cell: usize, map: &Map) -> u8 {
+fn convert_coord_to_index(x: usize, y: usize, width: usize) -> usize{
+    let index: usize = y * width + x;
+    index
+}
+fn check_neighbour(x: usize, y: usize, map: &Map) -> u8{
+    let index_of_neighbour: usize = convert_coord_to_index(x, y, map.width);
+    if map.cells[index_of_neighbour] == Dead{
+        return 0;
+    }
+    1
+}
+fn count_alive_neighbours(index_of_cell: usize, map: &Map) -> u8 {
     let mut nr_of_neighbours: u8 = 0;
 
-    if index_of_cell < map.width{
-        if index_of_cell % map.width == 0{
-            nr_of_neighbours += case_top_left(index_of_cell,map);
+    let x_of_cell: usize = index_of_cell % map.width;
+    let y_of_cell: usize = index_of_cell / map.width;
+
+    for dx in -1_i8..=1_i8{
+        for dy in -1_i8..=1_i8{
+            if !(dx == 0 && dy == 0){
+                let x_neighbour_isize: isize = (x_of_cell as isize) + (dx as isize);
+                let y_neighbour_isize: isize = (y_of_cell as isize) + (dy as isize);
+
+                if x_neighbour_isize >= 0 && y_neighbour_isize >= 0{
+                    let x_neighbour: usize = x_neighbour_isize as usize;
+                    let y_neighbour: usize = y_neighbour_isize as usize;
+
+                    if x_neighbour < map.height && y_neighbour < map.height{
+                        nr_of_neighbours += check_neighbour(x_neighbour, y_neighbour, map);
+                    }
+                }
+            }
         }
-        else if index_of_cell % map.width == map.width - 1{
-            nr_of_neighbours += case_top_right(index_of_cell,map);
-        }
-        else{
-            nr_of_neighbours += case_top_line(index_of_cell,map);
-        }
-    }
-    else if index_of_cell >= map.size - map.width{
-        if index_of_cell % map.width == 0{
-            nr_of_neighbours += case_bot_left(index_of_cell, map);
-        }
-        else if index_of_cell & map.width == map.width - 1{
-            nr_of_neighbours += case_bot_right(index_of_cell, map);
-        }
-        else{
-            nr_of_neighbours += case_bot_line(index_of_cell, map);
-        }
-    }
-    else if index_of_cell % map.width == 0{
-        nr_of_neighbours += case_left_line(index_of_cell, map);
-    }
-    else if index_of_cell % map.width == map.width - 1{
-        nr_of_neighbours += case_right_line(index_of_cell, map);
-    }
-    else{
-        nr_of_neighbours += case_mid(index_of_cell, map);
     }
 
     nr_of_neighbours
@@ -56,6 +55,6 @@ fn check_neighbours(index_of_cell: usize, map: &Map) -> u8 {
 //TODO - finish this
 pub fn run_generation(old_map: &Map){
     for cell_nr in 0..old_map.cells.len() {
-        let nr_of_neighbours: u8 = check_neighbours(cell_nr, old_map);
+        let nr_of_neighbours: u8 = count_alive_neighbours(cell_nr, old_map);
     }
 }

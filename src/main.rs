@@ -1,6 +1,6 @@
+use crate::rules::run_generation;
+
 mod rules;
-mod helper;
-mod neighbours;
 
 #[derive(Clone)]
 struct Map{
@@ -14,9 +14,9 @@ enum State{
     Dead,
     Alive,
 }
-fn simulate(mut generation: usize, limit: usize, _old_map: &Map){
+fn simulate(mut generation: usize, limit: usize, old_map: &Map){
     while generation < limit {
-        
+        run_generation(old_map);
         generation += 1;
     }
 }
