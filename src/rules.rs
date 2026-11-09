@@ -32,8 +32,8 @@ fn count_alive_neighbours(index_of_cell: usize, map: &Map) -> u8 {
     let x_of_cell: usize = index_of_cell % map.width;
     let y_of_cell: usize = index_of_cell / map.width;
 
-    for dx in -1_i8..=1_i8{
-        for dy in -1_i8..=1_i8{
+    for dy in -1_i8..=1_i8{
+        for dx in -1_i8..=1_i8{
             if !(dx == 0 && dy == 0){
                 let x_neighbour_isize: isize = (x_of_cell as isize) + (dx as isize);
                 let y_neighbour_isize: isize = (y_of_cell as isize) + (dy as isize);
