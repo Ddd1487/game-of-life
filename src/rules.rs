@@ -1,6 +1,6 @@
 use crate::{Map, State::{self, Alive, Dead}};
 
-fn convert_coord_to_index(x: isize, y: isize, width: usize) -> usize{
+pub fn convert_coord_to_index(x: isize, y: isize, width: usize) -> usize{
     let index: usize = (y as usize) * width + (x as usize);
     index
 }

@@ -1,4 +1,4 @@
-use crate::{Map, State::{self, Alive}, rules::run_generation};
+use crate::{Map, State::{self, Alive}, rules::{convert_coord_to_index, run_generation}};
 fn test_print(map: &Map){
     for iter in 0..map.size {
         if iter % map.width == 0 {
@@ -13,12 +13,20 @@ fn test_print(map: &Map){
     }
 }
 fn test_simulate(limit_of_generations: usize, old_map: &Map, new_map: &mut Map){
-    let generations: usize = 0;
+    let mut generations: usize = 0;
     while generations < limit_of_generations {
         print!("Generation number: {}\n", generations + 1);
         run_generation(old_map,new_map);
         test_print(new_map);
+        generations += 1;
     }
+}
+fn test_manual_start(map: &mut Map){
+    map.cells[convert_coord_to_index(2, 1, map.width)] = Alive;
+    map.cells[convert_coord_to_index(1, 2, map.width)] = Alive;
+    map.cells[convert_coord_to_index(2, 2, map.width)] = Alive;
+    map.cells[convert_coord_to_index(3, 2, map.width)] = Alive;
+    map.cells[convert_coord_to_index(2, 3, map.width)] = Alive;
 }
 pub fn test(width: usize, height: usize, limit_of_generations: usize){
     let old_map = Map{
@@ -28,6 +36,6 @@ pub fn test(width: usize, height: usize, limit_of_generations: usize){
         size: width * height,
     };
     let mut new_map = old_map.clone();
-
+    test_manual_start(&mut new_map);
     test_simulate(limit_of_generations, &old_map, &mut new_map);
 }
