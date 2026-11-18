@@ -35,7 +35,7 @@ pub fn test(width: usize, height: usize, limit_of_generations: usize){
 
     let mut generations: usize = 0;
     while generations < limit_of_generations {
-        print!("Generation number: {}\n", generations + 1);
+        print!("\nGeneration number: {}\n", generations + 1);
         run_generation(&old_map, &mut new_map);
         test_print(&new_map);
         std::mem::swap(&mut old_map, &mut new_map);

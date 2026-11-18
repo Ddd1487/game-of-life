@@ -17,5 +17,5 @@ pub enum State{
 }
 fn main() {
     //Testing
-    test(10,10,1);
+    test(10,10,20);
 }
