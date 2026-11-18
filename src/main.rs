@@ -1,8 +1,8 @@
 use std::{error::Error, io::stdout, process::exit, time::Duration};
 
-use crossterm::{event::{self, DisableMouseCapture, EnableMouseCapture, Event, poll, read}, execute, terminal::{disable_raw_mode, enable_raw_mode, size}};
+use crossterm::{event::{self, DisableMouseCapture, EnableMouseCapture, Event, poll, read}, execute, terminal::{Clear, EnterAlternateScreen, LeaveAlternateScreen, disable_raw_mode, enable_raw_mode, size}};
 
-use crate::{test_functions::test, tui::{TerminalInfo}};
+use crate::{test_functions::test, tui::{TerminalInfo, print_map}};
 mod rules;
 mod test_functions;
 mod tui;
@@ -19,12 +19,11 @@ pub enum State{
     Dead,
     Alive,
 }
+//TODO
 fn main() -> Result<(), Box<dyn std::error::Error>>{
     //Testing
     //test(10,10,20);
-    let mut width: u16;
-    let mut height: u16;
-    let (width, height) = match size(){
+    let (width_of_terminal, height_of_terminal) = match size(){
         Ok((w, h)) => (w as u16, h as u16),
         Err(_) => (25, 25),
     };
@@ -32,17 +31,16 @@ fn main() -> Result<(), Box<dyn std::error::Error>>{
     let mut terminal = TerminalInfo {
         cursor_x: 0,
         cursor_y: 0,
-        height: height as isize,
-        width: width as isize,
+        height: height_of_terminal as isize,
+        width: width_of_terminal as isize,
     };
 
-    match enable_raw_mode() {
-        Ok(()) => (),
-        Err(_) => exit(1),
-    };
+    let mut stdout = stdout();
+    enable_raw_mode()?;
     execute!(
-        stdout(),
+        stdout,
         EnableMouseCapture,
+        EnterAlternateScreen,
     )?;
 
     let width: usize = terminal.width as usize;
@@ -61,17 +59,19 @@ fn main() -> Result<(), Box<dyn std::error::Error>>{
             if terminal.leave_input(event, &mut old_map){
                 break;
             }
+            print_map(&old_map)?;
         }
     }
 
     execute!(
-        stdout(),
+        stdout,
         DisableMouseCapture,
     )?;
-    match disable_raw_mode() {
-        Ok(()) => (),
-        Err(_) => exit(2),
-    };
+    execute!(
+        stdout,
+        LeaveAlternateScreen,
+    )?;
+    disable_raw_mode()?;
 
     Ok(())
 }

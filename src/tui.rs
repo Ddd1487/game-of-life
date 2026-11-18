@@ -1,8 +1,8 @@
-use std::{io::stdout, time::Duration};
+use std::{fmt::Alignment, io::{Write, stdout}, time::Duration};
 
-use crossterm::{self, event::{self, Event, KeyCode, poll}, execute};
+use crossterm::{self, cursor::MoveTo, event::{self, Event, KeyCode, poll}, execute, terminal::{Clear, ClearType}};
 
-use crate::{Map, rules::{convert_coord_to_index, toggle_state}};
+use crate::{Map, State::{Alive, Dead}, rules::{convert_coord_to_index, toggle_state}};
 pub struct TerminalInfo{
     pub width: isize,
     pub height: isize,
@@ -59,4 +59,33 @@ impl TerminalInfo{
             _ => return false,
         }
     } 
+}
+//TODO
+pub fn print_map(map: &Map) -> Result<(), Box<dyn std::error::Error>> {
+    let mut stdout = stdout();
+    execute!(
+        stdout,
+        Clear(ClearType::All),
+        MoveTo(0,0),
+    )?;
+
+    let mut map_string: String = String::with_capacity(map.size + map.height);
+    let mut new_line_iter: usize = 0;
+    for iter in 0..map.size {
+        match map.cells[iter] {
+            Dead => map_string.push_str(" "),
+            Alive => map_string.push_str("█"),
+        };
+        if new_line_iter == map.width {
+            new_line_iter = 0;
+            map_string.push_str("\n");
+        }
+        else {
+            new_line_iter += 1;
+        }
+    }
+    print!("{}", map_string);
+    stdout.flush()?;
+
+    Ok(())
 }
