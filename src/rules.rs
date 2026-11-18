@@ -1,5 +1,11 @@
 use crate::{Map, State::{self, Alive, Dead}};
 
+pub fn toggle_state(map: &mut Map, index: usize){
+    match map.cells[index] {
+        Dead => map.cells[index] = Alive,
+        Alive => map.cells[index] = Dead,
+    }
+}
 pub fn convert_coord_to_index(x: isize, y: isize, width: usize) -> usize{
     let index: usize = (y as usize) * width + (x as usize);
     index
