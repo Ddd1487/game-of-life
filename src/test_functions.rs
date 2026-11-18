@@ -12,15 +12,6 @@ fn test_print(map: &Map){
         }
     }
 }
-fn test_simulate(limit_of_generations: usize, old_map: &Map, new_map: &mut Map){
-    let mut generations: usize = 0;
-    while generations < limit_of_generations {
-        print!("Generation number: {}\n", generations + 1);
-        run_generation(old_map,new_map);
-        test_print(new_map);
-        generations += 1;
-    }
-}
 fn test_manual_start(map: &mut Map){
     map.cells[convert_coord_to_index(2, 1, map.width)] = Alive;
     map.cells[convert_coord_to_index(1, 2, map.width)] = Alive;
@@ -29,13 +20,25 @@ fn test_manual_start(map: &mut Map){
     map.cells[convert_coord_to_index(2, 3, map.width)] = Alive;
 }
 pub fn test(width: usize, height: usize, limit_of_generations: usize){
-    let old_map = Map{
+    let mut old_map = Map{
         width,
         height,
         cells: vec![State::Dead; width * height],
         size: width * height,
     };
     let mut new_map = old_map.clone();
-    test_manual_start(&mut new_map);
-    test_simulate(limit_of_generations, &old_map, &mut new_map);
+
+    print!("Starting position\n");
+    test_manual_start(&mut old_map);
+    test_print(&old_map);
+    print!("\n\n\n");
+
+    let mut generations: usize = 0;
+    while generations < limit_of_generations {
+        print!("Generation number: {}\n", generations + 1);
+        run_generation(&old_map, &mut new_map);
+        test_print(&new_map);
+        std::mem::swap(&mut old_map, &mut new_map);
+        generations += 1;
+    }
 }
