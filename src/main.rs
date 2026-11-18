@@ -1,4 +1,4 @@
-use crate::{State::Alive, rules::run_generation};
+use crate::{test_functions::test};
 
 mod rules;
 mod test_functions;
