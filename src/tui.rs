@@ -1,6 +1,6 @@
-use std::{fmt::Alignment, io::{Write, stdout}, time::Duration};
+use std::{io::{Write, stdout}};
 
-use crossterm::{self, cursor::MoveTo, event::{self, Event, KeyCode, poll}, execute, terminal::{Clear, ClearType}};
+use crossterm::{self, cursor::MoveTo, event::{Event, KeyCode}, execute, terminal::{Clear, ClearType}};
 
 use crate::{Map, State::{Alive, Dead}, rules::{convert_coord_to_index, toggle_state}};
 pub struct TerminalInfo{

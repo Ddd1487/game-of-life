@@ -1,3 +1,4 @@
+/*
 use crate::{Map, State::{self, Alive}, rules::{convert_coord_to_index, run_generation}};
 fn test_print(map: &Map){
     for iter in 0..map.size {
@@ -42,3 +43,4 @@ pub fn test(width: usize, height: usize, limit_of_generations: usize){
         generations += 1;
     }
 }
+    */

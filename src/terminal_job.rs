@@ -1,8 +1,8 @@
 use crate::rules::run_generation;
 use crate::{TerminalInfo, tui::print_map, State, Map};
 use std::thread::sleep;
-use std::{error::Error, io::stdout, process::exit, time::{Duration, Instant}};
-use crossterm::{event::{self, DisableMouseCapture, EnableMouseCapture, Event, KeyCode, KeyEvent, poll, read}, execute, terminal::{Clear, EnterAlternateScreen, LeaveAlternateScreen, disable_raw_mode, enable_raw_mode, size}};
+use std::{io::stdout, time::{Duration, Instant}};
+use crossterm::{event::{DisableMouseCapture, EnableMouseCapture, KeyCode, poll, read}, execute, terminal::{EnterAlternateScreen, LeaveAlternateScreen, disable_raw_mode, enable_raw_mode, size}};
 
 pub fn game_in_terminal(tick_interval: u64) -> Result<(), Box<dyn std::error::Error>>{
     let (width_of_terminal, height_of_terminal) = match size(){
