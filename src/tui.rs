@@ -68,17 +68,24 @@ pub fn print_map(map: &Map) -> Result<(), Box<dyn std::error::Error>> {
         Clear(ClearType::All),
         MoveTo(0,0),
     )?;
-
-    let mut map_string: String = String::with_capacity(map.size + map.height);
+    /*
+        0 1 2
+        3 4 5
+        6 7 8
+        
+        9 numbers and 3 spaces => size + height + 1 (height is 0, 1, 2)
+    */
+    let mut map_string: String = String::with_capacity(map.size + map.height + 1);
     let mut new_line_iter: usize = 0;
     for iter in 0..map.size {
         match map.cells[iter] {
             Dead => map_string.push(' '),
             Alive => map_string.push('█'),
         };
+        // 0 1 2 3 4 5 6 -> when iter = 6, go to 0
         if new_line_iter == map.width {
             new_line_iter = 0;
-            map_string.push_str("\n");
+            map_string.push('\n');
         }
         else {
             new_line_iter += 1;
