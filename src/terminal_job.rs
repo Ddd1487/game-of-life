@@ -1,3 +1,4 @@
+use crate::rules::run_generation;
 use crate::{TerminalInfo, tui::print_map, State, Map};
 use std::thread::sleep;
 use std::{error::Error, io::stdout, process::exit, time::{Duration, Instant}};
@@ -43,7 +44,6 @@ pub fn game_in_terminal(tick_interval: u64) -> Result<(), Box<dyn std::error::Er
             print_map(&old_map)?;
         }
     }
-
     execute!(
         stdout,
         DisableMouseCapture,
@@ -62,7 +62,9 @@ pub fn game_in_terminal(tick_interval: u64) -> Result<(), Box<dyn std::error::Er
         }
 
         //game engine
-        
+        run_generation(&old_map, &mut new_map);
+        print_map(&new_map)?;
+        std::mem::swap(&mut old_map, &mut new_map);
 
         sleep(tick_now - Instant::now());
         tick_now += interval;

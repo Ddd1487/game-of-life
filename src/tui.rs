@@ -17,13 +17,13 @@ impl TerminalInfo{
                     KeyCode::Char('q') => return true,
                     KeyCode::Up => {
                         if self.cursor_y < self.height - 1 {
-                            self.cursor_y += 1;
+                            self.cursor_y -= 1;
                         }
                         return false;
                     }
                     KeyCode::Down => {
                         if self.cursor_y > 1 {
-                            self.cursor_y -= 1;
+                            self.cursor_y += 1;
                         }
                         return false;
                     }
@@ -40,7 +40,14 @@ impl TerminalInfo{
                         return false;
                     }
                     KeyCode::Enter => {
-                        toggle_state(map, convert_coord_to_index(self.cursor_x, self.cursor_y, map.width));
+                        if self.cursor_x >= 0 && self.cursor_x < self.width
+                            && self.cursor_y >= 0 && self.cursor_y < self.height{
+                            toggle_state(map, convert_coord_to_index(self.cursor_x, self.cursor_y, map.width));
+                            match print_map(map) {
+                            Ok(()) => (),
+                            Err(_) => (),
+                        };
+                        }
                         return false;
                     }
                     _ => return false,
@@ -53,6 +60,10 @@ impl TerminalInfo{
                 if self.cursor_x >= 0 && self.cursor_x < self.width
                     && self.cursor_y >= 0 && self.cursor_y < self.height{
                         toggle_state(map, convert_coord_to_index(self.cursor_x, self.cursor_y, map.width));
+                        match print_map(map) {
+                            Ok(()) => (),
+                            Err(_) => (),
+                        };
                     }
                 return false;
             }
@@ -60,7 +71,6 @@ impl TerminalInfo{
         }
     } 
 }
-//TODO
 pub fn print_map(map: &Map) -> Result<(), Box<dyn std::error::Error>> {
     let mut stdout = stdout();
     execute!(
