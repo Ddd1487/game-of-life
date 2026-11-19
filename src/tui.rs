@@ -73,8 +73,8 @@ pub fn print_map(map: &Map) -> Result<(), Box<dyn std::error::Error>> {
     let mut new_line_iter: usize = 0;
     for iter in 0..map.size {
         match map.cells[iter] {
-            Dead => map_string.push_str(" "),
-            Alive => map_string.push_str("█"),
+            Dead => map_string.push(' '),
+            Alive => map_string.push('█'),
         };
         if new_line_iter == map.width {
             new_line_iter = 0;
