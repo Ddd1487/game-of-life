@@ -1,4 +1,5 @@
 use crate::{TerminalInfo, tui::print_map, State, Map};
+use std::thread::sleep;
 use std::{error::Error, io::stdout, process::exit, time::{Duration, Instant}};
 use crossterm::{event::{self, DisableMouseCapture, EnableMouseCapture, Event, KeyCode, KeyEvent, poll, read}, execute, terminal::{Clear, EnterAlternateScreen, LeaveAlternateScreen, disable_raw_mode, enable_raw_mode, size}};
 
@@ -49,14 +50,22 @@ pub fn game_in_terminal(tick_interval: u64) -> Result<(), Box<dyn std::error::Er
     )?;
 
     let interval = Duration::from_millis(tick_interval);
-    let tick_now = Instant::now() + interval;
+    let mut tick_now = Instant::now() + interval;
     loop {
+        //q stops the simulation
         if poll(Duration::from_millis(100))? {
-            let leave_trigger = read()?;
-            if leave_trigger == Event::Key(KeyCode::Char('q').into()) {
-                break;
+            if let crossterm::event::Event::Key(key) = read()? {
+                if key.code == KeyCode::Char('q') {
+                    break;
+                }
             }
-        }        
+        }
+
+        //game engine
+        
+
+        sleep(tick_now - Instant::now());
+        tick_now += interval;
     }
 
     execute!(
