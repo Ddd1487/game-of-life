@@ -1,10 +1,8 @@
-use crate::{TerminalInfo, tui::print_map};
-use std::{error::Error, io::stdout, process::exit, time::Duration};
-use crate::{Map, State::{Alive, Dead}, rules::{convert_coord_to_index, toggle_state}};
-use crate::tui{print_map};
-use crossterm::{event::{self, DisableMouseCapture, EnableMouseCapture, Event, poll, read}, execute, terminal::{Clear, EnterAlternateScreen, LeaveAlternateScreen, disable_raw_mode, enable_raw_mode, size}};
+use crate::{TerminalInfo, tui::print_map, State, Map};
+use std::{error::Error, io::stdout, process::exit, time::{Duration, Instant}};
+use crossterm::{event::{self, DisableMouseCapture, EnableMouseCapture, Event, KeyCode, KeyEvent, poll, read}, execute, terminal::{Clear, EnterAlternateScreen, LeaveAlternateScreen, disable_raw_mode, enable_raw_mode, size}};
 
-pub fn set_up_terminal() -> Result<(), Box<dyn std::error::Error>>{
+pub fn game_in_terminal(tick_interval: u64) -> Result<(), Box<dyn std::error::Error>>{
     let (width_of_terminal, height_of_terminal) = match size(){
         Ok((w, h)) => (w as u16, h as u16),
         Err(_) => (25, 25),
@@ -49,6 +47,18 @@ pub fn set_up_terminal() -> Result<(), Box<dyn std::error::Error>>{
         stdout,
         DisableMouseCapture,
     )?;
+
+    let interval = Duration::from_millis(tick_interval);
+    let tick_now = Instant::now() + interval;
+    loop {
+        if poll(Duration::from_millis(100))? {
+            let leave_trigger = read()?;
+            if leave_trigger == Event::Key(KeyCode::Char('q').into()) {
+                break;
+            }
+        }        
+    }
+
     execute!(
         stdout,
         LeaveAlternateScreen,

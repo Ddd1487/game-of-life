@@ -2,7 +2,7 @@ use std::{error::Error, io::stdout, process::exit, time::Duration};
 
 use crossterm::{event::{self, DisableMouseCapture, EnableMouseCapture, Event, poll, read}, execute, terminal::{Clear, EnterAlternateScreen, LeaveAlternateScreen, disable_raw_mode, enable_raw_mode, size}};
 
-use crate::{test_functions::test, tui::{TerminalInfo, print_map}};
+use crate::{terminal_job::game_in_terminal, test_functions::test, tui::{TerminalInfo, print_map}};
 mod rules;
 mod test_functions;
 mod tui;
@@ -24,6 +24,6 @@ pub enum State{
 fn main() -> Result<(), Box<dyn std::error::Error>>{
     //Testing
     //test(10,10,20);
-    
+    game_in_terminal(100)?;
     Ok(())
 }
