@@ -1,88 +1,117 @@
-use std::{io::{Write, stdout}};
+use std::io::{Stdout, Write, stdout};
 
-use crossterm::{self, cursor::MoveTo, event::{Event, KeyCode}, execute, terminal::{Clear, ClearType}};
+use crossterm::{
+    self,
+    event::{DisableMouseCapture, EnableMouseCapture, Event, KeyCode},
+    execute,
+    terminal::{
+        Clear, ClearType, EnterAlternateScreen, LeaveAlternateScreen, disable_raw_mode,
+        enable_raw_mode,
+    },
+};
 
-use crate::{Map, State::{Alive, Dead}, rules::{convert_coord_to_index, toggle_state}};
-pub struct TerminalInfo{
+use crate::{
+    Map,
+    State::{Alive, Dead},
+    rules::{convert_coord_to_index, toggle_state},
+};
+pub struct TerminalGuard {
+    out: Stdout,
+}
+pub struct TerminalInfo {
     pub width: isize,
     pub height: isize,
     pub cursor_x: isize,
     pub cursor_y: isize,
 }
-impl TerminalInfo{
-    pub fn leave_input(&mut self, event: Event, map: &mut Map) -> bool{
+impl TerminalInfo {
+    pub fn leave_input(&mut self, event: Event, map: &mut Map) -> bool {
         match event {
-            Event::Key(key) => {
-                match key.code {
-                    KeyCode::Char('q') => return true,
-                    KeyCode::Up => {
-                        if self.cursor_y < self.height - 1 {
-                            self.cursor_y -= 1;
-                        }
-                        return false;
+            Event::Key(key) => match key.code {
+                KeyCode::Char('q') => true,
+                KeyCode::Up => {
+                    if self.cursor_y < self.height - 1 {
+                        self.cursor_y -= 1;
                     }
-                    KeyCode::Down => {
-                        if self.cursor_y > 1 {
-                            self.cursor_y += 1;
-                        }
-                        return false;
-                    }
-                    KeyCode::Left => {
-                        if self.cursor_x > 1 {
-                            self.cursor_x -= 1;
-                        }
-                        return false;
-                    }
-                    KeyCode::Right => {
-                        if self.cursor_x < self.width -1 {
-                            self.cursor_x += 1;
-                        }
-                        return false;
-                    }
-                    KeyCode::Enter => {
-                        if self.cursor_x >= 0 && self.cursor_x < self.width
-                            && self.cursor_y >= 0 && self.cursor_y < self.height{
-                            toggle_state(map, convert_coord_to_index(self.cursor_x, self.cursor_y, map.width));
-                            match print_map(map) {
-                            Ok(()) => (),
-                            Err(_) => (),
-                        };
-                        }
-                        return false;
-                    }
-                    _ => return false,
+                    false
                 }
-            }
+                KeyCode::Down => {
+                    if self.cursor_y > 1 {
+                        self.cursor_y += 1;
+                    }
+                    false
+                }
+                KeyCode::Left => {
+                    if self.cursor_x > 1 {
+                        self.cursor_x -= 1;
+                    }
+                    false
+                }
+                KeyCode::Right => {
+                    if self.cursor_x < self.width - 1 {
+                        self.cursor_x += 1;
+                    }
+                    false
+                }
+                KeyCode::Enter => {
+                    if self.cursor_x >= 0
+                        && self.cursor_x < self.width
+                        && self.cursor_y >= 0
+                        && self.cursor_y < self.height
+                    {
+                        toggle_state(
+                            map,
+                            convert_coord_to_index(self.cursor_x, self.cursor_y, map.width),
+                        );
+                    }
+                    false
+                }
+                _ => false,
+            },
             Event::Mouse(mouse) => {
                 self.cursor_x = mouse.row as isize;
                 self.cursor_y = mouse.column as isize;
 
-                if self.cursor_x >= 0 && self.cursor_x < self.width
-                    && self.cursor_y >= 0 && self.cursor_y < self.height{
-                        toggle_state(map, convert_coord_to_index(self.cursor_x, self.cursor_y, map.width));
-                        match print_map(map) {
-                            Ok(()) => (),
-                            Err(_) => (),
-                        };
-                    }
-                return false;
+                if self.cursor_x >= 0
+                    && self.cursor_x < self.width
+                    && self.cursor_y >= 0
+                    && self.cursor_y < self.height
+                {
+                    toggle_state(
+                        map,
+                        convert_coord_to_index(self.cursor_x, self.cursor_y, map.width),
+                    );
+                }
+                false
             }
-            _ => return false,
+            _ => false,
         }
-    } 
+    }
 }
-pub fn print_map(map: &Map) -> Result<(), Box<dyn std::error::Error>> {
-    let mut stdout = stdout();
-    execute!(
-        stdout,
-        Clear(ClearType::All),
-        MoveTo(0,0),
-    )?;
+impl TerminalGuard {
+    pub fn new() -> anyhow::Result<Self> {
+        let mut out = stdout();
+        enable_raw_mode()?;
+        execute!(out, EnableMouseCapture, EnterAlternateScreen)?;
+        Ok(Self { out })
+    }
+    pub fn writer(&mut self) -> &mut Stdout {
+        &mut self.out
+    }
+}
+impl Drop for TerminalGuard {
+    fn drop(&mut self) {
+        let _ = execute!(self.out, LeaveAlternateScreen, DisableMouseCapture);
+        let _ = disable_raw_mode();
+    }
+}
+pub fn print_map(map: &Map, stdout: &mut Stdout) -> anyhow::Result<()> {
+    execute!(stdout, Clear(ClearType::All),)?;
     /*
         0 1 2
         3 4 5
         6 7 8
-        
+
         9 numbers and 3 spaces => size + height + 1 (height is 0, 1, 2)
     */
     let mut map_string: String = String::with_capacity(map.size + map.height + 1);
@@ -95,13 +124,12 @@ pub fn print_map(map: &Map) -> Result<(), Box<dyn std::error::Error>> {
         // 0 1 2 3 4 5 6 -> when iter = 6, go to 0
         if new_line_iter == map.width {
             new_line_iter = 0;
-            map_string.push('\n');
-        }
-        else {
+            map_string.push('\r');
+        } else {
             new_line_iter += 1;
         }
     }
-    print!("{}", map_string);
+    write!(stdout, "{}", map_string)?;
     stdout.flush()?;
 
     Ok(())
