@@ -39,11 +39,10 @@ pub fn game_in_terminal(tick_interval: u64) -> anyhow::Result<()> {
     loop {
         if poll(Duration::from_millis(100))? {
             let event = read()?;
-            if terminal.leave_input(event, &mut new_map) {
+            if terminal.leave_input(event, &mut old_map) {
                 break;
             }
-            std::mem::swap(&mut old_map, &mut new_map);
-            print_map(&old_map, out)?;
+            print_map(&old_map, out, &terminal)?;
         }
     }
 
@@ -61,7 +60,7 @@ pub fn game_in_terminal(tick_interval: u64) -> anyhow::Result<()> {
         //game engine
         run_generation(&old_map, &mut new_map);
         std::mem::swap(&mut old_map, &mut new_map);
-        print_map(&old_map, out)?;
+        print_map(&old_map, out, &terminal)?;
 
         let remaining = tick_now.saturating_duration_since(Instant::now());
         sleep(remaining);

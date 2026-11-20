@@ -2,7 +2,7 @@ use std::io::{Stdout, Write, stdout};
 
 use crossterm::{
     self,
-    event::{DisableMouseCapture, EnableMouseCapture, Event, KeyCode},
+    event::{DisableMouseCapture, EnableMouseCapture, Event, MouseButton, MouseEventKind},
     execute,
     terminal::{
         Clear, ClearType, EnterAlternateScreen, LeaveAlternateScreen, disable_raw_mode,
@@ -29,27 +29,28 @@ impl TerminalInfo {
         match event {
             Event::Key(key) => match key.code {
                 KeyCode::Char('q') => true,
+                /*
                 KeyCode::Up => {
-                    if self.cursor_y < self.height - 1 {
-                        self.cursor_y -= 1;
+                    if self.cursor_y > 0 {
+                        self.cursor_y -= 2;
                     }
                     false
                 }
                 KeyCode::Down => {
-                    if self.cursor_y > 1 {
-                        self.cursor_y += 1;
+                    if self.cursor_y < self.height - 1 {
+                        self.cursor_y += 2;
                     }
                     false
                 }
                 KeyCode::Left => {
-                    if self.cursor_x > 1 {
-                        self.cursor_x -= 1;
+                    if self.cursor_x > 0 {
+                        self.cursor_x -= 2;
                     }
                     false
                 }
                 KeyCode::Right => {
                     if self.cursor_x < self.width - 1 {
-                        self.cursor_x += 1;
+                        self.cursor_x += 2;
                     }
                     false
                 }
@@ -66,21 +67,24 @@ impl TerminalInfo {
                     }
                     false
                 }
+                */
                 _ => false,
             },
             Event::Mouse(mouse) => {
-                self.cursor_x = mouse.row as isize;
-                self.cursor_y = mouse.column as isize;
+                if matches!(mouse.kind, MouseEventKind::Down(MouseButton::Left)) {
+                    self.cursor_x = mouse.column as isize;
+                    self.cursor_y = mouse.row as isize;
 
-                if self.cursor_x >= 0
-                    && self.cursor_x < self.width
-                    && self.cursor_y >= 0
-                    && self.cursor_y < self.height
-                {
-                    toggle_state(
-                        map,
-                        convert_coord_to_index(self.cursor_x, self.cursor_y, map.width),
-                    );
+                    if self.cursor_x >= 0
+                        && self.cursor_x < self.width
+                        && self.cursor_y >= 0
+                        && self.cursor_y < self.height
+                    {
+                        toggle_state(
+                            map,
+                            convert_coord_to_index(self.cursor_x, self.cursor_y, map.width),
+                        );
+                    }
                 }
                 false
             }
@@ -105,7 +109,7 @@ impl Drop for TerminalGuard {
         let _ = disable_raw_mode();
     }
 }
-pub fn print_map(map: &Map, stdout: &mut Stdout) -> anyhow::Result<()> {
+pub fn print_map(map: &Map, stdout: &mut Stdout, terminal: &TerminalInfo) -> anyhow::Result<()> {
     execute!(stdout, Clear(ClearType::All),)?;
     /*
         0 1 2
@@ -114,22 +118,27 @@ pub fn print_map(map: &Map, stdout: &mut Stdout) -> anyhow::Result<()> {
 
         9 numbers and 3 spaces => size + height + 1 (height is 0, 1, 2)
     */
-    let mut map_string: String = String::with_capacity(map.size + map.height + 1);
+    let mut map_string: String = String::with_capacity(2 * map.size + 2 * map.height);
     let mut new_line_iter: usize = 0;
     for iter in 0..map.size {
         match map.cells[iter] {
-            Dead => map_string.push(' '),
-            Alive => map_string.push('█'),
+            Dead => map_string.push_str("  "),
+            Alive => map_string.push_str("██"),
         };
         // 0 1 2 3 4 5 6 -> when iter = 6, go to 0
         if new_line_iter == map.width {
             new_line_iter = 0;
-            map_string.push('\r');
+            map_string.push_str("\r\n");
         } else {
             new_line_iter += 1;
         }
     }
     write!(stdout, "{}", map_string)?;
+    write!(
+        stdout,
+        "row {}, col {}",
+        terminal.cursor_x, terminal.cursor_y
+    )?;
     stdout.flush()?;
 
     Ok(())
