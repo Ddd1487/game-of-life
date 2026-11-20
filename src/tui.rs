@@ -2,7 +2,7 @@ use std::io::{Stdout, Write, stdout};
 
 use crossterm::{
     self,
-    event::{DisableMouseCapture, EnableMouseCapture, Event, MouseButton, MouseEventKind},
+    event::{DisableMouseCapture, EnableMouseCapture, Event, KeyCode, MouseButton, MouseEventKind},
     execute,
     terminal::{
         Clear, ClearType, EnterAlternateScreen, LeaveAlternateScreen, disable_raw_mode,
@@ -27,49 +27,7 @@ pub struct TerminalInfo {
 impl TerminalInfo {
     pub fn leave_input(&mut self, event: Event, map: &mut Map) -> bool {
         match event {
-            Event::Key(key) => match key.code {
-                KeyCode::Char('q') => true,
-                /*
-                KeyCode::Up => {
-                    if self.cursor_y > 0 {
-                        self.cursor_y -= 2;
-                    }
-                    false
-                }
-                KeyCode::Down => {
-                    if self.cursor_y < self.height - 1 {
-                        self.cursor_y += 2;
-                    }
-                    false
-                }
-                KeyCode::Left => {
-                    if self.cursor_x > 0 {
-                        self.cursor_x -= 2;
-                    }
-                    false
-                }
-                KeyCode::Right => {
-                    if self.cursor_x < self.width - 1 {
-                        self.cursor_x += 2;
-                    }
-                    false
-                }
-                KeyCode::Enter => {
-                    if self.cursor_x >= 0
-                        && self.cursor_x < self.width
-                        && self.cursor_y >= 0
-                        && self.cursor_y < self.height
-                    {
-                        toggle_state(
-                            map,
-                            convert_coord_to_index(self.cursor_x, self.cursor_y, map.width),
-                        );
-                    }
-                    false
-                }
-                */
-                _ => false,
-            },
+            Event::Key(key) => matches!(key.code, KeyCode::Char('q')),
             Event::Mouse(mouse) => {
                 if matches!(mouse.kind, MouseEventKind::Down(MouseButton::Left)) {
                     self.cursor_x = mouse.column as isize;
@@ -109,7 +67,7 @@ impl Drop for TerminalGuard {
         let _ = disable_raw_mode();
     }
 }
-pub fn print_map(map: &Map, stdout: &mut Stdout, terminal: &TerminalInfo) -> anyhow::Result<()> {
+pub fn print_map(map: &Map, stdout: &mut Stdout, _terminal: &TerminalInfo) -> anyhow::Result<()> {
     execute!(stdout, Clear(ClearType::All),)?;
     /*
         0 1 2
@@ -118,27 +76,22 @@ pub fn print_map(map: &Map, stdout: &mut Stdout, terminal: &TerminalInfo) -> any
 
         9 numbers and 3 spaces => size + height + 1 (height is 0, 1, 2)
     */
-    let mut map_string: String = String::with_capacity(2 * map.size + 2 * map.height);
-    let mut new_line_iter: usize = 0;
-    for iter in 0..map.size {
-        match map.cells[iter] {
-            Dead => map_string.push_str("  "),
-            Alive => map_string.push_str("██"),
-        };
-        // 0 1 2 3 4 5 6 -> when iter = 6, go to 0
-        if new_line_iter == map.width {
-            new_line_iter = 0;
-            map_string.push_str("\r\n");
-        } else {
-            new_line_iter += 1;
+    for y in 0_isize..(map.height as isize) {
+        let mut row_string: String = String::with_capacity(3 * map.width);
+        for x in 0_isize..(map.width as isize) {
+            match map.cells[convert_coord_to_index(x, y, map.width)] {
+                Alive => row_string.push('█'),
+                Dead => row_string.push(' '),
+            }
         }
+        write!(stdout, "{}\r\n", row_string)?;
     }
-    write!(stdout, "{}", map_string)?;
-    write!(
+    //write!(stdout, "{}", map_string)?;
+    /*write!(
         stdout,
-        "row {}, col {}",
+        "col {}, row {}",
         terminal.cursor_x, terminal.cursor_y
-    )?;
+    )?;*/
     stdout.flush()?;
 
     Ok(())

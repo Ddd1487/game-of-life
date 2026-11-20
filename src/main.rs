@@ -9,7 +9,6 @@ pub struct Map {
     width: usize,
     height: usize,
     cells: Vec<State>,
-    size: usize,
 }
 #[derive(Clone, PartialEq, Copy)]
 pub enum State {

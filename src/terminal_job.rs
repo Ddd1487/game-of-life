@@ -32,7 +32,6 @@ pub fn game_in_terminal(tick_interval: u64) -> anyhow::Result<()> {
         width,
         height,
         cells: vec![State::Dead; width * height],
-        size: width * height,
     };
     let mut new_map = old_map.clone();
 
