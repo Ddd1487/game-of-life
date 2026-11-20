@@ -19,6 +19,6 @@ pub enum State {
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     //Testing
     //test(10,10,20);
-    game_in_terminal(300)?;
+    game_in_terminal(250)?;
     Ok(())
 }
